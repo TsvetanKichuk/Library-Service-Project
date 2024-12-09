@@ -1,3 +1,9 @@
 from django.shortcuts import render
 
-# Create your views here.
+from rest_framework.viewsets import GenericViewSet
+
+from book_app.models import Book
+
+
+class BookViewSet(GenericViewSet):
+    queryset = Book.objects.all()
