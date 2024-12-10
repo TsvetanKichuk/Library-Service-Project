@@ -3,7 +3,7 @@ from rest_framework import serializers
 from borrowing.models import Borrowing, Payments
 
 
-class BorrowingSerializer(serializers.Serializer):
+class BorrowingSerializer(serializers.ModelSerializer):
     class Meta:
         model: Borrowing
         fields = (
@@ -15,7 +15,7 @@ class BorrowingSerializer(serializers.Serializer):
         )
 
 
-class PaymentsSerializers(serializers.Serializer):
+class PaymentsSerializers(serializers.ModelSerializer):
     class Meta:
         model: Payments
         fields = (
