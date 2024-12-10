@@ -12,6 +12,9 @@ class Borrowing(models.Model):
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'{self.book_id} - {self.user_id}'
+
 
 class Payments(models.Model):
     STATUS_CHOICES = [
@@ -28,3 +31,6 @@ class Payments(models.Model):
     session_url = models.URLField()
     session_id = models.CharField(max_length=100)
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f'{self.borrowing_id} - {self.status}'
