@@ -14,3 +14,10 @@ class BookSerializer(serializers.Serializer):
             "inventory",
             "daily_fee"
         )
+        read_only_fields = ('id',)
+
+
+class BookDetailSerializer(BookSerializer):
+    class Meta:
+        model = Book
+        fields = ("title", "author", "cover", "inventory", "daily_fee")
