@@ -1,12 +1,14 @@
+import datetime
+
 from django.db import models
 from rest_framework.authtoken.admin import User
-from book_app import Book
+from book_app.models import Book
 
 
 class Borrowing(models.Model):
-    borrow_date = models.DateField()
-    expected_return_date = models.DateField()
-    actual_return_date = models.DateField(null=True, blank=True)
+    borrow_date = models.DateField(datetime.date.today())
+    expected_return_date = models.DateField(datetime.date)
+    actual_return_date = models.DateField(datetime.date, null=True, blank=True)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
 
