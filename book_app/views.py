@@ -5,7 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from book_app.models import Book
 from book_app.permissions import IsAdminOrIfAuthenticatedReadOnly
-from book_app.serializers import BookSerializer
+from book_app.serializers import BookSerializer, BookDetailSerializer
 
 
 class OrderPagination(PageNumberPagination):
@@ -18,6 +18,11 @@ class BookViewSet(viewsets.ModelViewSet):
     serializer_class = BookSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
     pagination_class = OrderPagination
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BookSerializer
+        return BookDetailSerializer
 
     @extend_schema(
         parameters=[
