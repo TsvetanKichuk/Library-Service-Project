@@ -1,6 +1,6 @@
 from django.db import models
-from rest_framework.authtoken.admin import User
-from book_app import Book
+from django.conf import settings
+from book_app.models import Book
 
 
 class Borrowing(models.Model):
@@ -8,7 +8,7 @@ class Borrowing(models.Model):
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
 class Payments(models.Model):
