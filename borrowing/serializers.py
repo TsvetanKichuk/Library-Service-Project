@@ -5,7 +5,7 @@ from borrowing.models import Borrowing, Payments
 
 class BorrowingSerializer(serializers.ModelSerializer):
     class Meta:
-        model: Borrowing
+        model = Borrowing
         fields = (
             "borrow_date",
             "expected_return_date",
@@ -15,9 +15,9 @@ class BorrowingSerializer(serializers.ModelSerializer):
         )
 
 
-class PaymentsSerializers(serializers.ModelSerializer):
+class PaymentsSerializer(serializers.ModelSerializer):
     class Meta:
-        model: Payments
+        model = Payments
         fields = (
             "status",
             "type",
