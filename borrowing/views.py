@@ -5,7 +5,7 @@ from borrowing.models import Borrowing, Payments
 from borrowing.serializers import BorrowingSerializer, PaymentsSerializers
 
 
-class BorrowingViewSet(viewsets.GenericViewSet):
+class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("book_id, user")
     serializer_class = BorrowingSerializer
 
@@ -31,6 +31,6 @@ class BorrowingViewSet(viewsets.GenericViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PaymentsViewSet(viewsets.GenericViewSet):
+class PaymentsViewSet(viewsets.ModelViewSet):
     queryset = Payments.objects.select_related("borrowing_id")
     serializer_class = PaymentsSerializers
