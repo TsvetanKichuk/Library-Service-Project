@@ -7,6 +7,7 @@ class BorrowingSerializer(serializers.Serializer):
     class Meta:
         model: Borrowing
         fields = (
+            "id",
             "borrow_date",
             "expected_return_date",
             "actual_return_date",
@@ -19,6 +20,8 @@ class PaymentsSerializers(serializers.Serializer):
     class Meta:
         model: Payments
         fields = (
+            "id",
+            "payment_date",
             "status",
             "type",
             "borrowing_id",
