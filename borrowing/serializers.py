@@ -15,6 +15,21 @@ class BorrowingSerializer(serializers.ModelSerializer):
         )
 
 
+class BorrowingsDetailSerializer(BorrowingSerializer):
+    inventory = serializers.CharField(source="book_id.inventory", read_only=True)
+
+    class Meta:
+        model = Borrowing
+        fields = (
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "book_id",
+            "user_id",
+            "inventory"
+        )
+
+
 class PaymentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payments
