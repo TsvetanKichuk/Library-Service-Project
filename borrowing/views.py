@@ -2,12 +2,17 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from borrowing.models import Borrowing, Payments
-from borrowing.serializers import BorrowingSerializer, PaymentsSerializer
+from borrowing.serializers import BorrowingSerializer, PaymentsSerializer, BorrowingsDetailSerializer
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
     queryset = Borrowing.objects.select_related("user_id", "book_id")
     serializer_class = BorrowingSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BorrowingSerializer
+        return BorrowingsDetailSerializer
 
     @staticmethod
     def post(request, *args, **kwargs):
@@ -32,5 +37,5 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
 
 class PaymentsViewSet(viewsets.ModelViewSet):
-    queryset = Payments.objects.select_related("borrowing_id")
+    queryset = Payments.objects.select_related("borrowing_id__user_id")
     serializer_class = PaymentsSerializer
