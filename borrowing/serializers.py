@@ -15,6 +15,16 @@ class BorrowingSerializer(serializers.ModelSerializer):
         )
 
 
+def create(validated_data):
+    book = validated_data["book"]
+    if book.inventory < 1:
+        raise serializers.ValidationError("No more books available")
+    book.inventory -= 1
+    book.save()
+    borrowing = Borrowing.objects.create(**validated_data)
+    return borrowing
+
+
 class BorrowingsDetailSerializer(BorrowingSerializer):
     inventory = serializers.CharField(source="book_id.inventory", read_only=True)
 
@@ -26,7 +36,7 @@ class BorrowingsDetailSerializer(BorrowingSerializer):
             "actual_return_date",
             "book_id",
             "user_id",
-            "inventory"
+            "inventory",
         )
 
 
