@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
 from borrowing.models import Borrowing, Payments
@@ -23,6 +25,15 @@ def create(validated_data):
     book.save()
     borrowing = Borrowing.objects.create(**validated_data)
     return borrowing
+
+
+def return_book(validated_data):
+    book = validated_data["book"]
+    borrowing = validated_data["borrowing"]
+    if borrowing.actual_return_date is not datetime.date.today():
+        return book.inventory
+    book.inventory += 1
+    book.save()
 
 
 class BorrowingsDetailSerializer(BorrowingSerializer):
