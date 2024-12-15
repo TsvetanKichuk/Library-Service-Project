@@ -2,6 +2,7 @@ import datetime
 
 from django.conf import settings
 from django.db import models
+
 from book_app.models import Book
 
 
@@ -32,5 +33,5 @@ class Payments(models.Model):
     session_id = models.CharField(max_length=100)
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
 
-    # def __str__(self):
-    #     return f"{self.status}"
+    def __str__(self):
+        return f"{self.status}"

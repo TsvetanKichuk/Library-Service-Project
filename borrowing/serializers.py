@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
+from book_app.serializers import BookSerializer
 from borrowing.models import Borrowing, Payments
 
 
@@ -7,6 +10,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Borrowing
         fields = (
+            "id",
             "borrow_date",
             "expected_return_date",
             "actual_return_date",
@@ -25,8 +29,17 @@ def create(validated_data):
     return borrowing
 
 
+def return_book(validated_data):
+    book = validated_data["book"]
+    borrowing = validated_data["borrowing"]
+    if borrowing.actual_return_date is not datetime.date.today():
+        return book.inventory
+    book.inventory += 1
+    book.save()
+
+
 class BorrowingsDetailSerializer(BorrowingSerializer):
-    inventory = serializers.CharField(source="book_id.inventory", read_only=True)
+    inventory = BookSerializer(source="book_id", read_only=True, )
 
     class Meta:
         model = Borrowing
