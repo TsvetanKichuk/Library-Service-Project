@@ -20,7 +20,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
 
 def create(validated_data):
-    book = validated_data["book"]
+    book = validated_data["book_id"]
     if book.inventory < 1:
         raise serializers.ValidationError("No more books available")
     book.inventory -= 1
@@ -30,8 +30,8 @@ def create(validated_data):
 
 
 def return_book(validated_data):
-    book = validated_data["book"]
-    borrowing = validated_data["borrowing"]
+    book = validated_data["book_id"]
+    borrowing = validated_data["borrowing_id"]
     if borrowing.actual_return_date is not datetime.date.today():
         return book.inventory
     book.inventory += 1
@@ -54,6 +54,8 @@ class BorrowingsDetailSerializer(BorrowingSerializer):
 
 
 class PaymentsSerializer(serializers.ModelSerializer):
+    money_to_pay = serializers.DecimalField(source=Payments.money_to_pay, max_digits=10, decimal_places=2)
+
     class Meta:
         model = Payments
         fields = (
