@@ -33,5 +33,14 @@ class Payments(models.Model):
     session_id = models.CharField(max_length=100)
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
 
+    class Meta:
+        verbose_name_plural = "Payments"
+
     def __str__(self):
         return f"{self.status}"
+
+    @property
+    def money_to_pay(self):
+        calculate_fee = ((self.borrowing_id.actual_return_date - self.borrowing_id.borrow_date)
+                         * self.borrowing_id.book_id.daily_fee)
+        return calculate_fee
