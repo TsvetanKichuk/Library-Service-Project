@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "borrowing",
     "book_app",
     "user",
+    "mybot"
 ]
 
 MIDDLEWARE = [
