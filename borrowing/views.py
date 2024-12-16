@@ -1,3 +1,4 @@
+import stripe
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 
@@ -7,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 
 from borrowing.models import Borrowing, Payments
+from borrowing.permissions import IsAdminOrOwner
 from borrowing.serializers import (
     BorrowingSerializer,
     PaymentsSerializer,
@@ -75,3 +77,18 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 class PaymentsViewSet(viewsets.ModelViewSet):
     queryset = Payments.objects.select_related("borrowing_id__user_id")
     serializer_class = PaymentsSerializer
+    permission_classes = IsAdminOrOwner
+
+    def post(self, request):
+        serializer = PaymentsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            charge = stripe.Charge.create(
+                amount=serializer.validated_data['amount'],
+                currency='usd',
+                source=serializer.validated_data['token'],
+            )
+            return Response({'charge_id': charge.id})
+        except stripe.error.CardError as e:
+            return Response({'error': e.user_message})
