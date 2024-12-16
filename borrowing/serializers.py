@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from rest_framework import serializers
 
@@ -18,28 +18,32 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "user_id",
         )
 
+    def create(self, validated_data):
+        book = validated_data["book_id"]
+        if book.inventory < 1:
+            raise serializers.ValidationError("No more books available")
+        book.inventory -= 1
+        book.save()
+        borrowing = Borrowing.objects.create(**validated_data)
+        return borrowing
 
-def create(validated_data):
-    book = validated_data["book_id"]
-    if book.inventory < 1:
-        raise serializers.ValidationError("No more books available")
-    book.inventory -= 1
-    book.save()
-    borrowing = Borrowing.objects.create(**validated_data)
-    return borrowing
+    def update(self, instance, validated_data):
+        if not instance.actual_return_date:
+            raise serializers.ValidationError(
+                "This borrowing record is already borrowed."
+            )
 
+        instance.actual_return_date = date.today()
+        instance.save()
+        book = instance.book_id
+        book.inventory += 1
+        book.save()
 
-def return_book(validated_data):
-    book = validated_data["book_id"]
-    borrowing = validated_data["borrowing_id"]
-    if borrowing.actual_return_date is not datetime.date.today():
-        return book.inventory
-    book.inventory += 1
-    book.save()
+        return instance
 
 
 class BorrowingsDetailSerializer(BorrowingSerializer):
-    inventory = BookSerializer(source="book_id", read_only=True, )
+    book = BookSerializer(source="book_id", read_only=True, )
 
     class Meta:
         model = Borrowing
@@ -49,7 +53,7 @@ class BorrowingsDetailSerializer(BorrowingSerializer):
             "actual_return_date",
             "book_id",
             "user_id",
-            "inventory",
+            "book",
         )
 
 
