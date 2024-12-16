@@ -38,9 +38,3 @@ class Payments(models.Model):
 
     def __str__(self):
         return f"{self.status}"
-
-    @property
-    def money_to_pay(self):
-        calculate_fee = ((self.borrowing_id.actual_return_date - self.borrowing_id.borrow_date)
-                         * self.borrowing_id.book_id.daily_fee)
-        return calculate_fee
