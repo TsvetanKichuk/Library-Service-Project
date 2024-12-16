@@ -58,7 +58,6 @@ class BorrowingsDetailSerializer(BorrowingSerializer):
 
 
 class PaymentsSerializer(serializers.ModelSerializer):
-    money_to_pay = serializers.DecimalField(source=Payments.money_to_pay, max_digits=10, decimal_places=2)
 
     class Meta:
         model = Payments
