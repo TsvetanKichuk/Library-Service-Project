@@ -1,6 +1,10 @@
+from rest_framework.response import Response
+from rest_framework import status, viewsets
+
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+
+from django.db.models import Q
 
 from borrowing.models import Borrowing, Payments
 from borrowing.serializers import (
@@ -20,8 +24,8 @@ class BorrowingFilter(filters.FilterSet):
 
     def filter_is_active(self, queryset, name, value):
         if value:
-            return queryset.filter(returned_at__isnull=True)
-        return queryset.filter(returned_at__isnull=False)
+            return queryset.filter(expected_return_date__isnull=True)
+        return queryset.filter(expected_return_date__isnull=False)
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
@@ -34,6 +38,38 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return BorrowingSerializer
         return BorrowingsDetailSerializer
+
+    def get_active_user(self, request):
+        user_id = request.query_params.get("user_id")
+        is_active = request.query_params.get("is_active")
+
+        if user_id is None or is_active is None:
+            return Response(
+                {
+                    "error": "Both 'user_id' and 'is_active' query parameters are required."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            is_active = is_active.lower() == "true"
+
+            if is_active:
+                borrowings = Borrowing.objects.filter(
+                    Q(user_id=user_id) & Q(actual_return_date__isnull=True)
+                )
+            else:
+                borrowings = Borrowing.objects.filter(
+                    Q(user_id=user_id) & Q(actual_return_date__isnull=False)
+                )
+
+            serializer = BorrowingSerializer(borrowings, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class PaymentsViewSet(viewsets.ModelViewSet):
