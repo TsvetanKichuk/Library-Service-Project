@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
 
-from mybot.views import updater
+from mybot.views import application
 
 
 class Command(BaseCommand):
     help = "Runs the Telegram bot."
 
     def handle(self, *args, **options):
-        updater.start_polling()
+        application.start_polling()
