@@ -1,11 +1,10 @@
 import os
 
 import stripe
-from dotenv import load_dotenv
+from django.conf import settings
 
-load_dotenv()
 
-stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+stripe.api_key = settings.STRIPE_API_KEY
 
 stripe.Customer.create(
     name="Tsvetan Kichuk",
