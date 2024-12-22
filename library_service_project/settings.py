@@ -26,8 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
 SECRET_KEY = os.environ["SECRET_KEY"]
+
+stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
 STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]
 STRIPE_PUBLISHABLE_KEY = os.environ["STRIPE_PUBLISHABLE_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
