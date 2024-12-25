@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 
 from book_app.models import Book
-from book_app.permissions import IsAdminOrIfAuthenticatedReadOnly
+from permissions import IsAdminOrIfAuthenticatedReadOnly
 from book_app.serializers import BookSerializer, BookDetailSerializer
 
 
