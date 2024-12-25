@@ -1,20 +1,20 @@
-import os
-
-from telegram import Bot
-
 from dotenv import load_dotenv
-
+from telegram import Bot
+import telebot
 from telegram.ext import Application, CommandHandler
+
+import mybot
+from library_service_project import settings
 
 load_dotenv()
 
-MY_TOKEN = os.environ["TELEGRAM_TOKEN"]
+MY_TOKEN = settings.TELEGRAM_BOT_API_KEY
 
 application = Application.builder().token(MY_TOKEN).build()
 
 
 async def start(update, context):
-    await update.message.reply_text("Hello I'm your bot!")
+    await update.message.reply_text("Hello I'm your library project bot!")
 
 
 def send_telegram_notification(chat_id, message):
