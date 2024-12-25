@@ -1,22 +1,14 @@
-import stripe
-
 from django.db.models import Q
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from borrowing.models import Borrowing, Payments
-from borrowing.permissions import IsAdminOrOwner
+from borrowing.models import Borrowing
 from borrowing.serializers import (
     BorrowingSerializer,
-    PaymentsSerializer,
     BorrowingsDetailSerializer,
 )
-from mybot.views import send_telegram_notification
 
 
 class BorrowingFilter(filters.FilterSet):
@@ -27,7 +19,7 @@ class BorrowingFilter(filters.FilterSet):
         model = Borrowing
         fields = ["user_id", "is_active"]
 
-    def filter_is_active(self, queryset, name, value):
+    def filter_is_active(self, queryset, user_id, value):
         if value:
             return queryset.filter(expected_return_date__isnull=True)
         return queryset.filter(expected_return_date__isnull=False)
@@ -75,47 +67,3 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 {"error": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-class PaymentsViewSet(viewsets.ModelViewSet):
-    queryset = Payments.objects.select_related("borrowing_id__user_id")
-    serializer_class = PaymentsSerializer
-    permission_classes = IsAdminOrOwner
-
-    def post(self, request):
-        serializer = PaymentsSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            charge = stripe.Charge.create(
-                amount=serializer.validated_data['amount'],
-                currency='usd',
-                source=serializer.validated_data['token'],
-            )
-            return Response({'charge_id': charge.id})
-        except stripe.error.CardError as e:
-            return Response({'error': e.user_message})
-
-
-@csrf_exempt
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    endpoint_secret = "your-webhook-signing-secret"
-
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError as e:
-        return JsonResponse({"error": str(e)}, status=400)
-    except stripe.error.SignatureVerificationError as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        payment = Payments.objects.get(session_id=session["id"])
-        payment.status = "PAYED"
-        payment.save()
-        message = f"{payment.money_to_pay}$ success. Book: '{payment.borrowing_id.book_id.title}'"
-        send_telegram_notification(payment.borrowing_id.user_id.telegram_id, message)
-
-    return JsonResponse({"status": "success"})
