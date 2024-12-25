@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from borrowing.models import Borrowing, Payments
+from borrowing.models import Borrowing
 
 admin.site.register(Borrowing)
-admin.site.register(Payments)
