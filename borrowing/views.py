@@ -1,6 +1,8 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -67,3 +69,20 @@ class BorrowingViewSet(viewsets.ModelViewSet):
                 {"error": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "book_id",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by book id (ex. ?book=2)",
+            ),
+            OpenApiParameter(
+                "borrow_date",
+                type=OpenApiTypes.DATE,
+                description="Filter by borrow date (ex. ?borrow_date=2024-12-25)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
