@@ -1,9 +1,9 @@
-from datetime import datetime, date
+from datetime import date
 
 from rest_framework import serializers
 
 from book_app.serializers import BookSerializer
-from borrowing.models import Borrowing, Payments
+from borrowing.models import Borrowing
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -54,18 +54,4 @@ class BorrowingsDetailSerializer(BorrowingSerializer):
             "book_id",
             "user_id",
             "book",
-        )
-
-
-class PaymentsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Payments
-        fields = (
-            "status",
-            "type",
-            "borrowing_id",
-            "session_url",
-            "session_id",
-            "money_to_pay",
         )
