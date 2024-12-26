@@ -15,3 +15,8 @@ class Book(models.Model):
 
     def __str__(self):
         return f"book id: {self.id}, '{self.title}', (inventory : {self.inventory})"
+
+    def save(self, *args, **kwargs):
+        if self.inventory < 0:
+            raise ValueError("Inventory cannot be negative")
+        super().save(*args, **kwargs)
