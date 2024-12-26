@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     "book_app",
     "user",
     "payment",
-    "mybot",
 ]
 
 MIDDLEWARE = [
@@ -173,4 +172,4 @@ STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]
 STRIPE_PUBLISHABLE_KEY = os.environ["STRIPE_PUBLISHABLE_KEY"]
 STRIPE_WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]
 TELEGRAM_BOT_API_KEY = os.environ["TELEGRAM_TOKEN"]
-CHAT_ID = "@my_library_project_bot"
+CHAT_ID = os.environ["CHAT_ID"]
