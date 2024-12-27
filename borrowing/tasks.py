@@ -2,15 +2,12 @@ from celery import shared_task
 from dateutil.utils import today
 from django.db.models import Q
 
-from borrowing.models import Borrowing  # Замените на вашу модель Borrowing
+from borrowing.models import Borrowing
 from borrowing.signals import send_telegram_notification
 
 
 @shared_task
 def check_overdue_borrowings():
-    """
-    Check borrowings and send notifications for overdue ones.
-    """
     overdue_borrowings = Borrowing.objects.filter(
         Q(expected_return_date__lte=today) & Q(returned_at__isnull=True)
     )
