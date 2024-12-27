@@ -44,24 +44,3 @@ def notify_successful_payment(sender, instance, created, **kwargs):
             f"for borrowing '{instance.borrowing_id.book_id.title}' was successful."
         )
         send_telegram_notification(chat_id=CHAT_ID, message=message)
-
-
-def check_overdue_borrowings():
-    """
-    Check borrowings and send notifications for overdue ones.
-    """
-    overdue_borrowings = Borrowing.objects.filter(
-        returned_at__isnull=True, expected_return_date__lt=now()
-    )
-
-    for borrowing in overdue_borrowings:
-        message = (
-            f"Overdue Borrowing Alert:\n"
-            f"Book: {borrowing.book_id.title}\n"
-            f"Due Date: {borrowing.expected_return_date}\n"
-            f"Please return your book to avoid penalties."
-        )
-        try:
-            send_telegram_notification(borrowing.user_id.email, message)
-        except Exception as e:
-            print(f"Error while sending overdue borrowing notification: {e}")
