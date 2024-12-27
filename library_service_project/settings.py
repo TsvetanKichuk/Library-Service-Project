@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "book_app",
     "user",
     "payment",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -85,13 +86,23 @@ WSGI_APPLICATION = "library_service_project.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ["POSTGRES_DB"],
+#         "USER": os.environ["POSTGRES_USER"],
+#         "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+#         "HOST": os.environ["POSTGRES_HOST"],
+#         "PORT": os.environ["POSTGRES_PORT"],
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -173,3 +184,19 @@ STRIPE_PUBLISHABLE_KEY = os.environ["STRIPE_PUBLISHABLE_KEY"]
 STRIPE_WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]
 TELEGRAM_BOT_API_KEY = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
+
+CELERY_BROKER_URL = 'redis://localhost:6379'  # Use Redis as the message broker
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'  # Store task results in Redis
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {
+    'add_every_10_seconds': {
+        'task': 'tasks.add',
+        'schedule': 30000.0,
+        'args': (16, 16),
+    },
+}
+
