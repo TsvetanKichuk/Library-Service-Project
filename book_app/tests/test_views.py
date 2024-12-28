@@ -5,6 +5,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+BOOKS_URL = reverse('book_app:books-list')
+
 
 class BookViewSetTest(TestCase):
     def setUp(self):
@@ -25,36 +27,32 @@ class BookViewSetTest(TestCase):
         )
 
     def test_list_books(self):
-        url = reverse('books-list')
-        response = self.client.get(url)
+        response = self.client.get(BOOKS_URL)
         books = Book.objects.all()
         serializer = BookSerializer(books, many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
 
     def test_retrieve_book_detail(self):
-        url = reverse('book-detail', args=[self.book1.id])
+        url = reverse('book_app:book-detail', args=[self.book1.id])
         response = self.client.get(url)
         serializer = BookDetailSerializer(self.book1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
 
     def test_filter_books_by_title(self):
-        url = reverse('book-list')
-        response = self.client.get(f"{url}?title=Book One")
+        response = self.client.get(f"{BOOKS_URL}?title=Book One")
         serializer = BookSerializer([self.book1], many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
 
     def test_filter_books_by_author(self):
-        url = reverse('book-list')
-        response = self.client.get(f"{url}?author={self.book1.author}")
+        response = self.client.get(f"{BOOKS_URL}?author={self.book1.author}")
         serializer = BookSerializer([self.book1], many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
 
     def test_create_book_unauthenticated(self):
-        url = reverse('book-list')
         data = {
             "title": "New Book",
             "author": "New Author",
@@ -62,11 +60,11 @@ class BookViewSetTest(TestCase):
             "inventory": 3,
             "daily_fee": 1.99,
         }
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.post(BOOKS_URL, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_book_unauthenticated(self):
-        url = reverse('book-detail', args=[self.book1.id])
+        url = reverse('book_app:book-detail', args=[self.book1.id])
         data = {
             "title": "Updated Title",
             "author": self.book1.author,
@@ -75,9 +73,9 @@ class BookViewSetTest(TestCase):
             "daily_fee": self.book1.daily_fee,
         }
         response = self.client.put(url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_book_unauthenticated(self):
-        url = reverse('book-detail', args=[self.book1.id])
+        url = reverse('book_app:book-detail', args=[self.book1.id])
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
