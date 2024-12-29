@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.12.0a1-slim-buster
+FROM python:3.12-alpine3.20
 LABEL maintainer="toys4babyodua@gmail.com"
 
 WORKDIR /app
