@@ -1,10 +1,15 @@
+from datetime import date
+
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import status, viewsets
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from borrowing.models import Borrowing
 from borrowing.serializers import (
@@ -14,7 +19,6 @@ from borrowing.serializers import (
 
 
 class BorrowingFilter(filters.FilterSet):
-    user_id = filters.NumberFilter(field_name="user_id__id", lookup_expr="exact")
     is_active = filters.BooleanFilter(method="filter_is_active")
 
     class Meta:
@@ -23,8 +27,8 @@ class BorrowingFilter(filters.FilterSet):
 
     def filter_is_active(self, queryset, user_id, value):
         if value:
-            return queryset.filter(expected_return_date__isnull=True)
-        return queryset.filter(expected_return_date__isnull=False)
+            return queryset.filter(actual_return_date__isnull=True)
+        return queryset.filter(actual_return_date__isnull=False)
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
@@ -38,37 +42,21 @@ class BorrowingViewSet(viewsets.ModelViewSet):
             return BorrowingSerializer
         return BorrowingsDetailSerializer
 
-    def get_active_user(self, request):
-        user_id = request.query_params.get("user_id")
-        is_active = request.query_params.get("is_active")
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.query_params.get("user_id")
+        is_active = self.request.query_params.get("is_active")
 
-        if user_id is None or is_active is None:
-            return Response(
-                {
-                    "error": "Both 'user_id' and 'is_active' query parameters are required."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
 
-        try:
-            is_active = is_active.lower() == "true"
+        if is_active is not None:
+            if is_active.lower() == "true":
+                queryset = queryset.filter(actual_return_date__isnull=True)
+            elif is_active.lower() == "false":
+                queryset = queryset.filter(actual_return_date__isnull=False)
 
-            if is_active:
-                borrowings = Borrowing.objects.filter(
-                    Q(user_id=user_id) & Q(actual_return_date__isnull=True)
-                )
-            else:
-                borrowings = Borrowing.objects.filter(
-                    Q(user_id=user_id) & Q(actual_return_date__isnull=False)
-                )
-
-            serializer = BorrowingSerializer(borrowings, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(
-                {"error": f"An error occurred: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        return queryset
 
     @extend_schema(
         parameters=[
@@ -86,3 +74,22 @@ class BorrowingViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+
+# borrowing/views.py
+class ReturnBorrowingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, borrowing_id):
+        try:
+            borrowing = Borrowing.objects.get(id=borrowing_id)
+        except Borrowing.DoesNotExist:
+            raise NotFound("Borrowing not found.")
+
+        if borrowing.actual_return_date is not None:
+            raise ValidationError({"detail": "This borrowing has already been returned."})
+
+        borrowing.actual_return_date = date.today()
+        borrowing.save()
+
+        return Response({"message": "Borrowing returned successfully."})
