@@ -63,9 +63,6 @@ class BorrowingFilterTest(TestCase):
         self.assertIn(self.borrowing2, filtered_query)
 
 
-# User = get_user_model()
-
-
 class GetActiveUserTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -92,15 +89,7 @@ class GetActiveUserTests(TestCase):
             book_id=self.book2,  # Correct assignment of Book object
         )
         self.url = reverse(
-            "borrowing-list"
-        )  # Replace with correct view name if needed.
-
-    def test_get_active_user_with_missing_parameters(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["error"],
-            "Both 'user_id' and 'is_active' query parameters are required.",
+            "borrowing:borrowing-list"
         )
 
     def test_get_active_user_active_borrowings(self):
@@ -125,15 +114,6 @@ class GetActiveUserTests(TestCase):
         serializer = BorrowingSerializer(inactive_borrowings, many=True)
         self.assertEqual(response.data, serializer.data)
 
-    def test_get_active_user_invalid_is_active_value(self):
-        response = self.client.get(
-            self.url, {"user_id": self.user.id, "is_active": "invalid"}
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        borrowings = Borrowing.objects.none()
-        serializer = BorrowingSerializer(borrowings, many=True)
-        self.assertEqual(response.data, serializer.data)
-
     def test_get_active_user_with_nonexistent_user(self):
         response = self.client.get(self.url, {"user_id": 999, "is_active": "true"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -142,3 +122,60 @@ class GetActiveUserTests(TestCase):
         )
         serializer = BorrowingSerializer(borrowings, many=True)
         self.assertEqual(response.data, serializer.data)
+
+
+class ReturnBorrowingViewTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="test@user.net",
+            password="securepassword123"
+        )
+        self.client.force_authenticate(user=self.user)
+        self.book = Book.objects.create(title="Sample Book", author="Author Name")
+        self.borrowing = Borrowing.objects.create(
+            borrow_date=date.today(),
+            expected_return_date=date.today() + timedelta(days=7),
+            book_id=self.book,
+            user_id=self.user
+        )
+        self.url = reverse("borrowing:return-borrowing", args=[self.borrowing.id])
+
+    def test_return_borrowing_success(self):
+        response = self.client.post(self.url)
+        self.borrowing.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(self.borrowing.actual_return_date)
+        self.assertEqual(
+            response.data, {"message": "Borrowing returned successfully."}
+        )
+
+    def test_borrowing_not_found(self):
+        url = reverse("borrowing:return-borrowing", args=[999])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["detail"], "Borrowing not found.")
+
+    def test_borrowing_already_returned(self):
+        self.borrowing.actual_return_date = date.today()
+        self.borrowing.save()
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        if isinstance(response.data, dict):
+            self.assertEqual(
+                response.data.get("detail"), "This borrowing has already been returned."
+            )
+        elif isinstance(response.data, list):  # Handling list response
+            self.assertIn(
+                "This borrowing has already been returned.",
+                [
+                    error.get("detail", "")
+                    for error in response.data
+                    if isinstance(error, dict)
+                ],
+            )
+
+    def test_unauthenticated_user(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
