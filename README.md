@@ -115,7 +115,12 @@ Major endpoints for interacting with the application:
 
 ### Interface Screenshots
 
-
+![Снимок экрана 2024-12-29 152526](https://github.com/user-attachments/assets/20b12da3-9d61-4731-8a3c-357fdca0d360)
+![Снимок экрана 2024-12-29 152440](https://github.com/user-attachments/assets/47857cad-1d2f-4829-8e39-58e731fc14c6)
+![Снимок экрана 2024-12-29 152401](https://github.com/user-attachments/assets/18ee3f28-70de-4058-93b4-6f1585063d54)
+![Снимок экрана 2024-12-29 152342](https://github.com/user-attachments/assets/1108b9af-cb88-400f-ac44-0367a6d554cd)
+![Снимок экрана 2024-12-29 152319](https://github.com/user-attachments/assets/5d96ce06-b87c-4043-aefb-9d59e7b329dd)
+![Снимок экрана 2024-12-29 152606](https://github.com/user-attachments/assets/37a4261d-2e39-4c14-ac97-5cd3865b2475)
 
 ## Testing
 
