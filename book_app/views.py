@@ -8,16 +8,10 @@ from permissions import IsAdminOrIfAuthenticatedReadOnly
 from book_app.serializers import BookSerializer, BookDetailSerializer
 
 
-class OrderPagination(PageNumberPagination):
-    page_size = 10
-    max_page_size = 100
-
-
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    pagination_class = OrderPagination
 
     def get_serializer_class(self):
         if self.action == "list":
