@@ -1,6 +1,5 @@
-from datetime import date
-
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from book_app.serializers import BookSerializer
 from borrowing.models import Borrowing
@@ -28,22 +27,39 @@ class BorrowingSerializer(serializers.ModelSerializer):
         return borrowing
 
     def update(self, instance, validated_data):
-        if not instance.actual_return_date:
+        if "actual_return_date" in validated_data and not instance.actual_return_date:
+            instance.actual_return_date = validated_data["actual_return_date"]
+
+            book = instance.book_id
+            book.inventory += 1
+            book.save()
+        elif instance.actual_return_date:
             raise serializers.ValidationError(
-                "This borrowing record is already borrowed."
+                "Cannot update a borrowing record that is already returned."
             )
 
-        instance.actual_return_date = date.today()
-        instance.save()
-        book = instance.book_id
-        book.inventory += 1
-        book.save()
+        for attr, value in validated_data.items():
+            if (
+                attr != "actual_return_date"
+            ):
+                setattr(instance, attr, value)
 
+        instance.save()
         return instance
+
+    def validate(self, data):
+        if self.instance and self.instance.actual_return_date:
+            raise ValidationError(
+                "Cannot update a borrowing record that is already returned."
+            )
+        return data
 
 
 class BorrowingsDetailSerializer(BorrowingSerializer):
-    book = BookSerializer(source="book_id", read_only=True, )
+    book = BookSerializer(
+        source="book_id",
+        read_only=True,
+    )
 
     class Meta:
         model = Borrowing
